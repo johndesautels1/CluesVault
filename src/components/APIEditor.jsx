@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PRODUCTS } from '../utils/data';
+import { PRODUCTS } from '../data';
 
 export default function APIEditor({ api, isOpen, onClose, onSave }) {
   const [formData, setFormData] = useState({
