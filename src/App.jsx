@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import AuthModal from './components/AuthModal';
 import Toolbar from './components/Toolbar';
 import CategoryTabs from './components/CategoryTabs';
@@ -8,8 +8,10 @@ import APIEditor from './components/APIEditor';
 import BulkImport from './components/BulkImport';
 import CategoryManager from './components/CategoryManager';
 import ProductManager from './components/ProductManager';
+import Settings from './components/Settings';
 import Footer from './components/Footer';
 import { loadAPIData, saveAPIData, loadCategories, saveCategories, loadProducts, saveProducts } from './utils/storage';
+import { getGitHubToken, syncToGist } from './utils/gistSync';
 import './index.css';
 
 export default function App() {
@@ -26,7 +28,9 @@ export default function App() {
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
   const [isProductManagerOpen, setIsProductManagerOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentAPI, setCurrentAPI] = useState(null);
+  const [syncStatus, setSyncStatus] = useState('disconnected'); // disconnected, connected, syncing, synced, error
 
   // Load API data, categories, and products on mount
   useEffect(() => {
@@ -37,6 +41,12 @@ export default function App() {
       setCategories(cats);
       const prods = loadProducts();
       setProducts(prods);
+
+      // Check if GitHub token exists
+      const token = getGitHubToken();
+      if (token) {
+        setSyncStatus('connected');
+      }
     }
   }, [isAuthenticated]);
 
@@ -60,6 +70,40 @@ export default function App() {
       saveProducts(products);
     }
   }, [products, isAuthenticated]);
+
+  // Auto-sync to GitHub when data changes
+  const autoSync = useCallback(async () => {
+    const token = getGitHubToken();
+    if (!token || syncStatus === 'syncing') return;
+
+    // Only sync if we have data
+    if (apiData.length === 0 && categories.length === 0) return;
+
+    setSyncStatus('syncing');
+    const vaultData = { apis: apiData, categories, products };
+    const result = await syncToGist(token, vaultData);
+
+    if (result.success) {
+      setSyncStatus('synced');
+      // Reset to connected after 2 seconds
+      setTimeout(() => setSyncStatus('connected'), 2000);
+    } else {
+      setSyncStatus('error');
+    }
+  }, [apiData, categories, products, syncStatus]);
+
+  // Trigger auto-sync when data changes (debounced)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const token = getGitHubToken();
+    if (!token) return;
+
+    const timeoutId = setTimeout(() => {
+      autoSync();
+    }, 2000); // Wait 2 seconds after last change before syncing
+
+    return () => clearTimeout(timeoutId);
+  }, [apiData, categories, products, isAuthenticated]);
 
   // Get used products for filter dropdown (only show products actually in use)
   const usedProducts = useMemo(() => {
@@ -165,6 +209,22 @@ export default function App() {
     setProducts(newProducts);
   };
 
+  // Restore data from cloud backup
+  const handleRestoreData = (cloudData) => {
+    if (cloudData.apis) {
+      setApiData(cloudData.apis);
+      saveAPIData(cloudData.apis);
+    }
+    if (cloudData.categories) {
+      setCategories(cloudData.categories);
+      saveCategories(cloudData.categories);
+    }
+    if (cloudData.products) {
+      setProducts(cloudData.products);
+      saveProducts(cloudData.products);
+    }
+  };
+
   // Get category info helper
   const getCategoryInfo = (categoryId) => {
     return categories.find(c => c.id === categoryId) || { icon: '📁', name: categoryId || 'Uncategorized' };
@@ -214,6 +274,8 @@ export default function App() {
         onImport={handleImport}
         onBulkImport={() => setIsBulkImportOpen(true)}
         onManageProducts={() => setIsProductManagerOpen(true)}
+        onSettings={() => setIsSettingsOpen(true)}
+        syncStatus={syncStatus}
         apiData={apiData}
       />
 
@@ -284,6 +346,16 @@ export default function App() {
         onClose={() => setIsProductManagerOpen(false)}
         products={products}
         onSave={handleSaveProducts}
+      />
+
+      {/* Settings Modal */}
+      <Settings
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        vaultData={{ apis: apiData, categories, products }}
+        onRestoreData={handleRestoreData}
+        syncStatus={syncStatus}
+        onSyncStatusChange={setSyncStatus}
       />
 
       {/* Footer */}

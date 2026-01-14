@@ -12,8 +12,19 @@ export default function Toolbar({
   onImport,
   onBulkImport,
   onManageProducts,
+  onSettings,
+  syncStatus,
   apiData
 }) {
+  const getSyncIcon = () => {
+    switch (syncStatus) {
+      case 'syncing': return '⏳';
+      case 'synced': return '✅';
+      case 'connected': return '☁️';
+      case 'error': return '❌';
+      default: return '📴';
+    }
+  };
   const handleImportClick = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -81,6 +92,12 @@ export default function Toolbar({
           <button onClick={() => exportPython(apiData)} title="Export as Python">PY</button>
           <button onClick={handleImportClick} title="Import JSON file">📤</button>
         </div>
+
+        <div className="toolbar-divider"></div>
+
+        <button onClick={onSettings} className="btn-settings" title="Settings & Cloud Sync">
+          {getSyncIcon()} Settings
+        </button>
       </div>
     </div>
   );
