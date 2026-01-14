@@ -1,6 +1,6 @@
 import { getStatusClass } from '../utils/storage';
 
-export default function APICard({ api, onEdit, onDelete }) {
+export default function APICard({ api, categoryInfo, onEdit, onDelete }) {
   const handleTitleClick = () => {
     if (api.docsUrl) {
       window.open(api.docsUrl, '_blank');
@@ -14,8 +14,13 @@ export default function APICard({ api, onEdit, onDelete }) {
   return (
     <div className="card">
       <div className="card-header">
-        <div className="card-title" onClick={handleTitleClick}>
-          {api.name || '(Unnamed API)'}
+        <div className="card-title-row">
+          <span className="card-category-icon" title={categoryInfo?.name}>
+            {categoryInfo?.icon || '📁'}
+          </span>
+          <div className="card-title" onClick={handleTitleClick}>
+            {api.name || '(Unnamed API)'}
+          </div>
         </div>
         <div className={`status-pill ${getStatusClass(api.status)}`}>
           {(api.status || 'active').toUpperCase()}
@@ -23,7 +28,11 @@ export default function APICard({ api, onEdit, onDelete }) {
       </div>
 
       {api.description && (
-        <div className="value">{api.description}</div>
+        <div className="card-description">{api.description}</div>
+      )}
+
+      {api.monthlyCost && (
+        <div className="cost-badge">{api.monthlyCost}/mo</div>
       )}
 
       {api.products && api.products.length > 0 && (
@@ -37,68 +46,51 @@ export default function APICard({ api, onEdit, onDelete }) {
         </>
       )}
 
-      {api.category && (
-        <>
-          <div className="label">Category</div>
-          <div className="value">{api.category}</div>
-        </>
-      )}
-
       {api.baseUrlProd && (
         <>
-          <div className="label">Base URL (prod)</div>
-          <div className="small">{api.baseUrlProd}</div>
+          <div className="label">Base URL</div>
+          <div className="small url-text">{api.baseUrlProd}</div>
         </>
       )}
 
       {(api.docsUrl || api.authMethod) && (
-        <>
-          <div className="label">Docs & Auth</div>
+        <div className="card-links">
           {api.docsUrl && (
-            <a href={api.docsUrl} target="_blank" rel="noopener noreferrer">
-              API Docs
+            <a href={api.docsUrl} target="_blank" rel="noopener noreferrer" className="card-link">
+              📖 Docs
             </a>
-          )}
-          {api.authMethod && (
-            <div className="small">
-              Auth: {api.authMethod}
-              {api.envProd && ` · env: ${api.envProd}`}
-            </div>
-          )}
-        </>
-      )}
-
-      {(api.accountEmail || api.loginUrl) && (
-        <>
-          <div className="label">Account & Login</div>
-          {api.accountEmail && (
-            <div className="small">Email: {api.accountEmail}</div>
           )}
           {api.loginUrl && (
-            <a href={api.loginUrl} target="_blank" rel="noopener noreferrer">
-              Login Portal
+            <a href={api.loginUrl} target="_blank" rel="noopener noreferrer" className="card-link">
+              🔑 Login
             </a>
           )}
-        </>
+          {api.tokenPortalUrl && (
+            <a href={api.tokenPortalUrl} target="_blank" rel="noopener noreferrer" className="card-link">
+              🎫 Keys
+            </a>
+          )}
+        </div>
       )}
 
-      {api.tokenPortalUrl && (
-        <>
-          <div className="label">Token / Keys</div>
-          <a href={api.tokenPortalUrl} target="_blank" rel="noopener noreferrer">
-            Manage Keys
-          </a>
-          {api.tokenLastRotated && (
-            <div className="small">Last rotated: {api.tokenLastRotated}</div>
-          )}
-        </>
+      {api.authMethod && (
+        <div className="small auth-info">
+          Auth: {api.authMethod}
+          {api.envProd && <span className="env-var"> · {api.envProd}</span>}
+        </div>
+      )}
+
+      {(api.accountEmail || api.username || api.userId) && (
+        <div className="credentials-section">
+          <div className="label">Credentials</div>
+          {api.accountEmail && <div className="small">📧 {api.accountEmail}</div>}
+          {api.username && <div className="small">👤 {api.username}</div>}
+          {api.userId && <div className="small">🆔 {api.userId}</div>}
+        </div>
       )}
 
       {api.secretLocation && (
-        <>
-          <div className="label">Secret Location</div>
-          <div className="small">{api.secretLocation}</div>
-        </>
+        <div className="small secret-location">🔒 {api.secretLocation}</div>
       )}
 
       {api.tags && api.tags.length > 0 && (
@@ -110,15 +102,14 @@ export default function APICard({ api, onEdit, onDelete }) {
       )}
 
       {api.notes && (
-        <>
-          <div className="label">Notes</div>
+        <div className="card-notes">
           <div className="small">{api.notes}</div>
-        </>
+        </div>
       )}
 
       <div className="card-actions">
-        <button onClick={onEdit}>Edit</button>
-        <button onClick={onDelete}>Delete</button>
+        <button onClick={onEdit}>✏️ Edit</button>
+        <button onClick={onDelete} className="btn-delete">🗑️ Delete</button>
       </div>
     </div>
   );

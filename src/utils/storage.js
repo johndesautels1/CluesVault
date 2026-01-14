@@ -1,4 +1,4 @@
-import { STORAGE_KEY, AUTH_KEY, DEFAULT_APIS } from '../data';
+import { STORAGE_KEY, AUTH_KEY, CATEGORIES_KEY, DEFAULT_APIS, DEFAULT_CATEGORIES } from '../data';
 
 // SHA-256 hash function
 export async function hashString(str) {
@@ -57,6 +57,84 @@ export function saveAuth(email, hash) {
     console.error('Error saving auth:', e);
     return false;
   }
+}
+
+// Load categories from localStorage
+export function loadCategories() {
+  try {
+    const raw = localStorage.getItem(CATEGORIES_KEY);
+    if (!raw) {
+      return DEFAULT_CATEGORIES;
+    }
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return DEFAULT_CATEGORIES;
+    }
+    return parsed;
+  } catch (e) {
+    console.error('Error loading categories:', e);
+    return DEFAULT_CATEGORIES;
+  }
+}
+
+// Save categories to localStorage
+export function saveCategories(categories) {
+  try {
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories));
+    return true;
+  } catch (e) {
+    console.error('Error saving categories:', e);
+    return false;
+  }
+}
+
+// Parse CSV for bulk import
+export function parseCSV(csvText) {
+  const lines = csvText.trim().split('\n');
+  if (lines.length < 2) return [];
+
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  const apis = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (const char of lines[i]) {
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        values.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    values.push(current.trim());
+
+    const api = {};
+    headers.forEach((header, idx) => {
+      let value = values[idx] || '';
+      // Handle array fields
+      if (['products', 'tags'].includes(header) && value) {
+        api[header] = value.split(';').map(v => v.trim()).filter(Boolean);
+      } else {
+        api[header] = value;
+      }
+    });
+
+    // Generate apiId if not present
+    if (!api.apiId && api.name) {
+      api.apiId = api.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    }
+
+    if (api.name) {
+      apis.push(api);
+    }
+  }
+
+  return apis;
 }
 
 // Export functions

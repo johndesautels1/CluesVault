@@ -1,29 +1,37 @@
 import { useState, useEffect, useMemo } from 'react';
 import AuthModal from './components/AuthModal';
 import Toolbar from './components/Toolbar';
+import CategoryTabs from './components/CategoryTabs';
 import AlphabetNav from './components/AlphabetNav';
 import APICard from './components/APICard';
 import APIEditor from './components/APIEditor';
+import BulkImport from './components/BulkImport';
+import CategoryManager from './components/CategoryManager';
 import Footer from './components/Footer';
-import { loadAPIData, saveAPIData } from './utils/storage';
+import { loadAPIData, saveAPIData, loadCategories, saveCategories } from './utils/storage';
 import './index.css';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [apiData, setApiData] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState('');
   const [productFilter, setProductFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [alphaFilter, setAlphaFilter] = useState('');
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
+  const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
   const [currentAPI, setCurrentAPI] = useState(null);
 
-  // Load API data on mount
+  // Load API data and categories on mount
   useEffect(() => {
     if (isAuthenticated) {
       const data = loadAPIData();
       setApiData(data);
+      const cats = loadCategories();
+      setCategories(cats);
     }
   }, [isAuthenticated]);
 
@@ -34,20 +42,20 @@ export default function App() {
     }
   }, [apiData, isAuthenticated]);
 
-  // Extract unique products and categories for filters
-  const { products, categories } = useMemo(() => {
+  // Save categories whenever they change
+  useEffect(() => {
+    if (isAuthenticated && categories.length > 0) {
+      saveCategories(categories);
+    }
+  }, [categories, isAuthenticated]);
+
+  // Extract unique products for filters
+  const products = useMemo(() => {
     const productSet = new Set();
-    const categorySet = new Set();
-    
     apiData.forEach(api => {
       (api.products || []).forEach(p => productSet.add(p));
-      if (api.category) categorySet.add(api.category);
     });
-    
-    return {
-      products: Array.from(productSet).sort(),
-      categories: Array.from(categorySet).sort()
-    };
+    return Array.from(productSet).sort();
   }, [apiData]);
 
   // Filter and sort API data
@@ -110,7 +118,7 @@ export default function App() {
   const handleSaveAPI = (apiToSave) => {
     if (currentAPI) {
       // Update existing
-      setApiData(prev => prev.map(api => 
+      setApiData(prev => prev.map(api =>
         api.apiId === currentAPI.apiId ? apiToSave : api
       ));
     } else {
@@ -130,50 +138,89 @@ export default function App() {
     setApiData(importedData);
   };
 
+  const handleBulkImport = (newApis) => {
+    // Merge with existing, avoiding duplicates by apiId
+    const existingIds = new Set(apiData.map(a => a.apiId));
+    const uniqueNewApis = newApis.filter(a => !existingIds.has(a.apiId));
+    setApiData(prev => [...prev, ...uniqueNewApis]);
+  };
+
+  const handleSaveCategories = (newCategories) => {
+    setCategories(newCategories);
+  };
+
+  // Get category info helper
+  const getCategoryInfo = (categoryId) => {
+    return categories.find(c => c.id === categoryId) || { icon: '📁', name: categoryId || 'Uncategorized' };
+  };
+
   if (!isAuthenticated) {
     return <AuthModal onAuthenticated={() => setIsAuthenticated(true)} />;
   }
 
   return (
     <>
-      <header>
-        <div className="title-block">
-          <h1>CluesVault</h1>
-          <div className="subtitle">
-            Central API vault for CLUES Core, CLUES: QI, CLUES: Valiant, CLUES: TES, Heart-Recovery_Calendar & Olivia-Chatbot.
+      {/* CLUES Intelligence Header */}
+      <header className="app-header">
+        <div className="header-brand">
+          <div className="logo-container">
+            <span className="logo-icon">🔐</span>
+            <div className="logo-text">
+              <h1>CluesVault</h1>
+              <span className="logo-subtitle">Secure API & Credentials Registry</span>
+            </div>
           </div>
-          <div className="brand-tagline">
-            John E. Desautels & Associates · CLUES™ · Stop Guessing — Start Living
-          </div>
+        </div>
+        <div className="header-tagline">
+          <span className="tagline-main">CLUES Intelligence LTD</span>
+          <span className="tagline-sub">Enterprise Security • API Management • Credential Control</span>
         </div>
       </header>
 
+      {/* Category Tabs */}
+      <CategoryTabs
+        categories={categories}
+        activeCategory={categoryFilter}
+        setActiveCategory={setCategoryFilter}
+        onManageCategories={() => setIsCategoryManagerOpen(true)}
+      />
+
+      {/* Toolbar */}
       <Toolbar
         search={search}
         setSearch={setSearch}
         productFilter={productFilter}
         setProductFilter={setProductFilter}
-        categoryFilter={categoryFilter}
-        setCategoryFilter={setCategoryFilter}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
         products={products}
-        categories={categories}
         onNewAPI={handleNewAPI}
         onImport={handleImport}
+        onBulkImport={() => setIsBulkImportOpen(true)}
         apiData={apiData}
       />
 
-      <AlphabetNav 
+      {/* Alphabet Navigation */}
+      <AlphabetNav
         activeFilter={alphaFilter}
         setActiveFilter={setAlphaFilter}
       />
 
+      {/* Stats Bar */}
+      <div className="stats-bar">
+        <span className="stat-item">
+          📊 {filteredAPIs.length} of {apiData.length} APIs
+          {categoryFilter && ` in ${getCategoryInfo(categoryFilter).icon} ${getCategoryInfo(categoryFilter).name}`}
+        </span>
+      </div>
+
+      {/* API Cards Grid */}
       <div className="grid">
         {filteredAPIs.map(api => (
           <APICard
             key={api.apiId}
             api={api}
+            categoryInfo={getCategoryInfo(api.category)}
             onEdit={() => handleEditAPI(api)}
             onDelete={() => handleDeleteAPI(api)}
           />
@@ -181,18 +228,39 @@ export default function App() {
       </div>
 
       {filteredAPIs.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>
-          No APIs match your filters. Try adjusting your search or filters.
+        <div className="empty-state">
+          <div className="empty-icon">📭</div>
+          <p>No APIs match your filters.</p>
+          <p className="hint">Try adjusting your search, category, or filters.</p>
         </div>
       )}
 
+      {/* API Editor Modal */}
       <APIEditor
         api={currentAPI}
         isOpen={isEditorOpen}
         onClose={handleCloseEditor}
         onSave={handleSaveAPI}
+        categories={categories}
       />
 
+      {/* Bulk Import Modal */}
+      <BulkImport
+        isOpen={isBulkImportOpen}
+        onClose={() => setIsBulkImportOpen(false)}
+        onImport={handleBulkImport}
+        categories={categories}
+      />
+
+      {/* Category Manager Modal */}
+      <CategoryManager
+        isOpen={isCategoryManagerOpen}
+        onClose={() => setIsCategoryManagerOpen(false)}
+        categories={categories}
+        onSave={handleSaveCategories}
+      />
+
+      {/* Footer */}
       <Footer />
     </>
   );

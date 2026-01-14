@@ -5,14 +5,12 @@ export default function Toolbar({
   setSearch,
   productFilter,
   setProductFilter,
-  categoryFilter,
-  setCategoryFilter,
   statusFilter,
   setStatusFilter,
   products,
-  categories,
   onNewAPI,
   onImport,
+  onBulkImport,
   apiData
 }) {
   const handleImportClick = () => {
@@ -22,7 +20,7 @@ export default function Toolbar({
     input.onchange = (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      
+
       const reader = new FileReader();
       reader.onload = (event) => {
         try {
@@ -47,38 +45,40 @@ export default function Toolbar({
       <div className="toolbar">
         <input
           type="text"
-          placeholder="Search by name, product, tag…"
+          placeholder="🔍 Search by name, tag, description…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          className="search-input"
         />
-        
+
         <select value={productFilter} onChange={(e) => setProductFilter(e.target.value)}>
-          <option value="">Filter by product</option>
+          <option value="">All Products</option>
           {products.map(p => (
             <option key={p} value={p}>{p}</option>
           ))}
         </select>
-        
-        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-          <option value="">Filter by category</option>
-          {categories.map(c => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-        
+
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-          <option value="">Filter by status</option>
-          <option value="active">Active</option>
-          <option value="testing">Testing</option>
-          <option value="deprecated">Deprecated</option>
+          <option value="">All Status</option>
+          <option value="active">✅ Active</option>
+          <option value="testing">🧪 Testing</option>
+          <option value="deprecated">⚠️ Deprecated</option>
         </select>
-        
-        <button onClick={onNewAPI}>＋ New API</button>
-        <button onClick={() => exportJSON(apiData)}>Export JSON</button>
-        <button onClick={() => exportCSV(apiData)}>Export CSV</button>
-        <button onClick={() => exportJS(apiData)}>Export JS</button>
-        <button onClick={() => exportPython(apiData)}>Export Python</button>
-        <button onClick={handleImportClick}>Import JSON</button>
+
+        <div className="toolbar-divider"></div>
+
+        <button onClick={onNewAPI} className="btn-accent">＋ New API</button>
+        <button onClick={onBulkImport} className="btn-bulk">📥 Bulk Import</button>
+
+        <div className="toolbar-divider"></div>
+
+        <div className="export-group">
+          <button onClick={() => exportJSON(apiData)} title="Export as JSON">JSON</button>
+          <button onClick={() => exportCSV(apiData)} title="Export as CSV">CSV</button>
+          <button onClick={() => exportJS(apiData)} title="Export as JavaScript">JS</button>
+          <button onClick={() => exportPython(apiData)} title="Export as Python">PY</button>
+          <button onClick={handleImportClick} title="Import JSON file">📤</button>
+        </div>
       </div>
     </div>
   );

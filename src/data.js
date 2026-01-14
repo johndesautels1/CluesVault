@@ -2,6 +2,7 @@
 
 export const STORAGE_KEY = 'cluesvault_api_registry_v2';
 export const AUTH_KEY = 'cluesvault_auth_v2';
+export const CATEGORIES_KEY = 'cluesvault_categories_v1';
 
 export const PRODUCTS = [
   'CLUES Core',
@@ -10,6 +11,24 @@ export const PRODUCTS = [
   'CLUES: TES',
   'Heart-Recovery_Calendar',
   'Olivia-Chatbot'
+];
+
+// Default categories - users can add/edit their own
+export const DEFAULT_CATEGORIES = [
+  { id: 'ai-ml', name: 'AI & Machine Learning', icon: '🤖' },
+  { id: 'video-content', name: 'Video & Content Creation', icon: '🎬' },
+  { id: 'web-hosting', name: 'Web Development & Hosting', icon: '💻' },
+  { id: 'business-productivity', name: 'Business & Productivity', icon: '📊' },
+  { id: 'marketing-social', name: 'Marketing & Social Media', icon: '📱' },
+  { id: 'financial', name: 'Financial Services', icon: '💰' },
+  { id: 'legal-compliance', name: 'Legal & Compliance', icon: '⚖️' },
+  { id: 'infrastructure', name: 'Supporting Infrastructure', icon: '🔧' },
+  { id: 'government', name: 'Government', icon: '🏛️' },
+  { id: 'apps-development', name: 'Applications & Development', icon: '🛠️' },
+  { id: 'real-estate', name: 'Real Estate & MLS', icon: '🏠' },
+  { id: 'design-staging', name: 'Design & Virtual Staging', icon: '🎨' },
+  { id: 'banking', name: 'Banking & Finance', icon: '🏦' },
+  { id: 'tax-accounting', name: 'Tax & Accounting', icon: '📋' },
 ];
 
 export const DEFAULT_APIS = [

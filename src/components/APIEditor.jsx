@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PRODUCTS } from '../data';
 
-export default function APIEditor({ api, isOpen, onClose, onSave }) {
+export default function APIEditor({ api, isOpen, onClose, onSave, categories = [] }) {
   const [formData, setFormData] = useState({
     apiId: '',
     name: '',
@@ -180,14 +180,19 @@ export default function APIEditor({ api, isOpen, onClose, onSave }) {
 
           <div className="field-group">
             <label htmlFor="category">Category</label>
-            <input
-              type="text"
+            <select
               id="category"
               name="category"
               value={formData.category}
               onChange={handleChange}
-              placeholder="LLM / AI, Forms, Payments, Maps, Transit, Video, etc."
-            />
+            >
+              <option value="">Select a category...</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.icon} {cat.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="field-group">
