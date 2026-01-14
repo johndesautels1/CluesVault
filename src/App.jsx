@@ -7,14 +7,16 @@ import APICard from './components/APICard';
 import APIEditor from './components/APIEditor';
 import BulkImport from './components/BulkImport';
 import CategoryManager from './components/CategoryManager';
+import ProductManager from './components/ProductManager';
 import Footer from './components/Footer';
-import { loadAPIData, saveAPIData, loadCategories, saveCategories } from './utils/storage';
+import { loadAPIData, saveAPIData, loadCategories, saveCategories, loadProducts, saveProducts } from './utils/storage';
 import './index.css';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [apiData, setApiData] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]);
   const [search, setSearch] = useState('');
   const [productFilter, setProductFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -23,15 +25,18 @@ export default function App() {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
+  const [isProductManagerOpen, setIsProductManagerOpen] = useState(false);
   const [currentAPI, setCurrentAPI] = useState(null);
 
-  // Load API data and categories on mount
+  // Load API data, categories, and products on mount
   useEffect(() => {
     if (isAuthenticated) {
       const data = loadAPIData();
       setApiData(data);
       const cats = loadCategories();
       setCategories(cats);
+      const prods = loadProducts();
+      setProducts(prods);
     }
   }, [isAuthenticated]);
 
@@ -49,8 +54,15 @@ export default function App() {
     }
   }, [categories, isAuthenticated]);
 
-  // Extract unique products for filters
-  const products = useMemo(() => {
+  // Save products whenever they change
+  useEffect(() => {
+    if (isAuthenticated && products.length > 0) {
+      saveProducts(products);
+    }
+  }, [products, isAuthenticated]);
+
+  // Get used products for filter dropdown (only show products actually in use)
+  const usedProducts = useMemo(() => {
     const productSet = new Set();
     apiData.forEach(api => {
       (api.products || []).forEach(p => productSet.add(p));
@@ -149,6 +161,10 @@ export default function App() {
     setCategories(newCategories);
   };
 
+  const handleSaveProducts = (newProducts) => {
+    setProducts(newProducts);
+  };
+
   // Get category info helper
   const getCategoryInfo = (categoryId) => {
     return categories.find(c => c.id === categoryId) || { icon: '📁', name: categoryId || 'Uncategorized' };
@@ -193,10 +209,11 @@ export default function App() {
         setProductFilter={setProductFilter}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
-        products={products}
+        products={usedProducts}
         onNewAPI={handleNewAPI}
         onImport={handleImport}
         onBulkImport={() => setIsBulkImportOpen(true)}
+        onManageProducts={() => setIsProductManagerOpen(true)}
         apiData={apiData}
       />
 
@@ -242,6 +259,7 @@ export default function App() {
         onClose={handleCloseEditor}
         onSave={handleSaveAPI}
         categories={categories}
+        products={products}
       />
 
       {/* Bulk Import Modal */}
@@ -258,6 +276,14 @@ export default function App() {
         onClose={() => setIsCategoryManagerOpen(false)}
         categories={categories}
         onSave={handleSaveCategories}
+      />
+
+      {/* Product Manager Modal */}
+      <ProductManager
+        isOpen={isProductManagerOpen}
+        onClose={() => setIsProductManagerOpen(false)}
+        products={products}
+        onSave={handleSaveProducts}
       />
 
       {/* Footer */}

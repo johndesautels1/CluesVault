@@ -11,6 +11,7 @@ export default function Toolbar({
   onNewAPI,
   onImport,
   onBulkImport,
+  onManageProducts,
   apiData
 }) {
   const handleImportClick = () => {
@@ -69,6 +70,7 @@ export default function Toolbar({
 
         <button onClick={onNewAPI} className="btn-accent">＋ New API</button>
         <button onClick={onBulkImport} className="btn-bulk">📥 Bulk Import</button>
+        <button onClick={onManageProducts} className="btn-manage">📦 Products</button>
 
         <div className="toolbar-divider"></div>
 

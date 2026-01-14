@@ -115,16 +115,16 @@ body {
 /* ========== CATEGORY TABS ========== */
 .category-tabs-container {
   margin-bottom: 12px;
-  overflow-x: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #374151 transparent;
+  background: rgba(15,23,42,0.6);
+  border-radius: 16px;
+  padding: 10px;
 }
 
-.category-tabs {
+.category-tabs-grid {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  padding: 4px;
-  min-width: max-content;
+  justify-content: center;
 }
 
 .category-tab {
@@ -233,6 +233,15 @@ body {
 
 .toolbar .btn-bulk:hover {
   background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.toolbar .btn-manage {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  border-color: #8b5cf6;
+}
+
+.toolbar .btn-manage:hover {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
 }
 
 .toolbar-divider {

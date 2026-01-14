@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { PRODUCTS } from '../data';
 
-export default function APIEditor({ api, isOpen, onClose, onSave, categories = [] }) {
+export default function APIEditor({ api, isOpen, onClose, onSave, categories = [], products = [] }) {
   const [formData, setFormData] = useState({
     apiId: '',
     name: '',
@@ -163,7 +162,7 @@ export default function APIEditor({ api, isOpen, onClose, onSave, categories = [
           <div className="field-group">
             <label>Products using this API</label>
             <div className="products-row">
-              {PRODUCTS.map(product => (
+              {products.map(product => (
                 <label key={product}>
                   <input
                     type="checkbox"

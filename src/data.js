@@ -3,6 +3,7 @@
 export const STORAGE_KEY = 'cluesvault_api_registry_v2';
 export const AUTH_KEY = 'cluesvault_auth_v2';
 export const CATEGORIES_KEY = 'cluesvault_categories_v1';
+export const PRODUCTS_KEY = 'cluesvault_products_v1';
 
 export const PRODUCTS = [
   'CLUES Core',
@@ -33,27 +34,27 @@ export const DEFAULT_CATEGORIES = [
 
 export const DEFAULT_APIS = [
   {
-    apiId: 'openai-core',
-    name: 'OpenAI API',
+    apiId: 'openai-api',
+    name: 'OpenAI API (ChatGPT / Responses API)',
     status: 'active',
-    products: ['CLUES Core', 'CLUES: QI', 'CLUES: Valiant', 'CLUES: TES', 'Olivia-Chatbot'],
-    category: 'LLM / AI',
-    description: 'Generates CLUES relocation reports, QI property narratives, and powers Olivia-style assistants.',
+    products: ['CLUES Core', 'CLUES: QI', 'Olivia-Chatbot'],
+    category: 'ai-ml',
+    description: 'Primary LLM provider for CLUES. Used for generating narrative reports, summarizing city/neighborhood research, extracting structured data, and powering Olivia chatbot conversations. Prefer Responses API for new builds; supports tool use (including web search) when enabled.',
     baseUrlProd: 'https://api.openai.com/v1',
-    docsUrl: 'https://platform.openai.com/docs/api-reference',
-    authMethod: 'Bearer API key',
+    docsUrl: 'https://platform.openai.com/docs',
+    authMethod: 'Bearer API key (Header: Authorization: Bearer $OPENAI_API_KEY)',
     envProd: 'OPENAI_API_KEY',
     envDev: 'OPENAI_API_KEY_DEV',
     accountEmail: 'cluesnomads@gmail.com',
-    loginUrl: 'https://platform.openai.com',
+    loginUrl: 'https://platform.openai.com/',
     accountPassword: '',
     apiKeyToken: '',
-    tokenPortalUrl: 'https://platform.openai.com/api-keys',
-    tokenLastRotated: '',
-    secretLocation: '1Password › CLUES › OpenAI Production Key',
-    tags: ['critical', 'paid', 'external'],
-    notes: 'Monitor RPM/TPM when batch-generating large reports and Olivia conversations.',
-    // NEW CREDENTIAL FIELDS
+    tokenPortalUrl: 'https://platform.openai.com/settings/organization/api-keys',
+    tokenLastRotated: '2026-01-14',
+    secretLocation: '1Password + Vercel Environment Variables',
+    tags: ['critical', 'paid', 'external', 'llm', 'openai'],
+    notes: 'Prefer POST /v1/responses for text generation (modern interface). Keep API key server-side only; never expose in client apps.',
+    monthlyCost: '$200',
     userId: '',
     username: '',
     personalCode: '',

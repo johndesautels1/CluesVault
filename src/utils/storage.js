@@ -1,4 +1,4 @@
-import { STORAGE_KEY, AUTH_KEY, CATEGORIES_KEY, DEFAULT_APIS, DEFAULT_CATEGORIES } from '../data';
+import { STORAGE_KEY, AUTH_KEY, CATEGORIES_KEY, PRODUCTS_KEY, DEFAULT_APIS, DEFAULT_CATEGORIES, PRODUCTS } from '../data';
 
 // SHA-256 hash function
 export async function hashString(str) {
@@ -84,6 +84,35 @@ export function saveCategories(categories) {
     return true;
   } catch (e) {
     console.error('Error saving categories:', e);
+    return false;
+  }
+}
+
+// Load products from localStorage
+export function loadProducts() {
+  try {
+    const raw = localStorage.getItem(PRODUCTS_KEY);
+    if (!raw) {
+      return PRODUCTS;
+    }
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return PRODUCTS;
+    }
+    return parsed;
+  } catch (e) {
+    console.error('Error loading products:', e);
+    return PRODUCTS;
+  }
+}
+
+// Save products to localStorage
+export function saveProducts(products) {
+  try {
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+    return true;
+  } catch (e) {
+    console.error('Error saving products:', e);
     return false;
   }
 }

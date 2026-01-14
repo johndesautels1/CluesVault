@@ -1,14 +1,19 @@
 export default function CategoryTabs({ categories, activeCategory, setActiveCategory, onManageCategories }) {
+  // Sort categories alphabetically by name
+  const sortedCategories = [...categories].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
   return (
     <div className="category-tabs-container">
-      <div className="category-tabs">
+      <div className="category-tabs-grid">
         <button
           className={`category-tab ${activeCategory === '' ? 'active' : ''}`}
           onClick={() => setActiveCategory('')}
         >
           📋 All
         </button>
-        {categories.map(cat => (
+        {sortedCategories.map(cat => (
           <button
             key={cat.id}
             className={`category-tab ${activeCategory === cat.id ? 'active' : ''}`}
